@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advance Sale — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <div style="text-align:center; padding: 18px 0 4px;">
+      <div style="font-size:18px; font-weight:700;">Advance Sale 🎁</div>
+      <div class="gold-underline"></div>
+      <div style="font-size:12px; color:var(--muted); margin-top:8px;">Limited-time gems with boosted yields</div>
+    </div>
+    <div class="product-grid" id="grid"><div class="empty" style="grid-column:1/-1;">Loading...</div></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderNav();
+      const { data: products } = await window.supabase.from('products')
+        .select('*').eq('is_active', true).eq('category', 'advance').order('sort_order');
+      const grid = document.getElementById('grid');
+      if (!products || !products.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">No advance offers right now.</div>'; return; }
+      grid.innerHTML = products.map(p => `
+        <div class="product-card">
+          <img class="pc-img" src="${p.image_url || ''}" alt="">
+          <div class="pc-name">🎁 ${p.name} <span class="pill pill-pend">LIMITED</span></div>
+          <div class="pc-row"><span class="lbl">Price:</span><span class="val">${SIGNETT.money(p.price)}</span></div>
+          <div class="pc-row"><span class="lbl">Term:</span><span class="val">${p.term_days} days</span></div>
+          <div class="pc-row"><span class="lbl">Daily income:</span><span class="val">${SIGNETT.money(p.daily_income)}</span></div>
+          <a class="btn btn-gold btn-block btn-sm" href="product-detail.html?id=${p.id}">View project</a>
+        </div>`).join('');
+    });
+  </script>
+</body>
+</html>
