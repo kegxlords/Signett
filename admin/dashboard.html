@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signett Admin</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    body{background:#000;padding-bottom:40px;}
+    .adm-head{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#000;border-bottom:1px solid #1C1C1E;position:sticky;top:0;z-index:50;}
+    .adm-head b{color:#fff;font-size:18px;} .adm-head b span{color:#8B0000;}
+    .adm-tabs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;}
+    .adm-tab{padding:10px 18px;background:#1C1C1E;border:1px solid #2C2C2E;border-radius:10px;color:#8E8E93;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .adm-tab.active{background:#8B0000;color:#F8C471;border-color:#8B0000;}
+    .adm-card{background:#1C1C1E;border:1px solid #2C2C2E;border-radius:16px;margin:0 16px 16px;overflow:hidden;}
+    .adm-table{width:100%;border-collapse:collapse;font-size:12.5px;color:#fff;}
+    .adm-table th{background:#0A0A0A;color:#8E8E93;text-align:left;padding:11px 10px;font-size:10.5px;text-transform:uppercase;}
+    .adm-table td{padding:12px 10px;border-bottom:1px solid #232323;vertical-align:top;}
+    .t-btn{border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px;}
+    .t-ok{background:#30D158;color:#000;} .t-no{background:#FF453A;color:#fff;}
+    .scroll-x{overflow-x:auto;}
+  </style>
+</head>
+<body>
+  <div class="adm-head"><b>SIGNETT <span>ADMIN</span></b><a href="../app/home.html" style="color:#8E8E93;font-size:13px;text-decoration:none;">Exit</a></div>
+  <div class="adm-tabs">
+    <div class="adm-tab active" onclick="tab('dep', this)">💰 Deposits</div>
+    <div class="adm-tab" onclick="tab('wd', this)">💸 Withdrawals</div>
+  </div>
+  <div id="pane-dep" class="adm-card"><div class="scroll-x"><table class="adm-table">
+    <thead><tr><th>User</th><th>Amount</th><th>Sender/Ref</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="depRows"><tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">Loading...</td></tr></tbody>
+  </table></div></div>
+  <div id="pane-wd" class="adm-card" style="display:none;"><div class="scroll-x"><table class="adm-table">
+    <thead><tr><th>User</th><th>Net</th><th>Bank</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="wdRows"><tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">Loading...</td></tr></tbody>
+  </table></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/admin-guard.js"></script>
+  <script>
+    window.tab = (t, el) => {
+      document.querySelectorAll('.adm-tab').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('pane-dep').style.display = t === 'dep' ? '' : 'none';
+      document.getElementById('pane-wd').style.display = t === 'wd' ? '' : 'none';
+    };
+    const pill = s => s === 'approved' ? '<span class="pill pill-pass">Approved</span>' : s === 'pending' ? '<span class="pill pill-pend">Pending</span>' : '<span class="pill pill-fail">Rejected</span>';
+
+    async function loadDep() {
+      const { data } = await window.supabase.from('transactions')
+        .select('*, profiles(email, phone)').eq('type', 'deposit').order('created_at', { ascending: false }).limit(50);
+      depRows.innerHTML = (data || []).map(t => `<tr>
+        <td>${t.profiles?.phone || t.profiles?.email || '?'}</td>
+        <td style="color:#F8C471;font-weight:700;">₦${Number(t.amount).toLocaleString()}</td>
+        <td style="color:#8E8E93;">${t.description || '-'}<br><small>${t.reference || ''}</small></td>
+        <td>${pill(t.status)}</td>
+        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="approveDep('${t.id}','${t.user_id}',${t.amount})">Approve</button><button class="t-btn t-no" onclick="setTx('${t.id}','rejected')">Reject</button>` : '—'}</td>
+      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">No deposits.</td></tr>';
+    }
+
+    async function loadWd() {
+      const { data } = await window.supabase.from('transactions')
+        .select('*, profiles(email, phone)').eq('type', 'withdrawal').order('created_at', { ascending: false }).limit(50);
+      wdRows.innerHTML = (data || []).map(t => `<tr>
+        <td>${t.profiles?.phone || t.profiles?.email || '?'}</td>
+        <td style="color:#F8C471;font-weight:700;">₦${Number(Math.abs(t.amount)).toLocaleString()}</td>
+        <td style="color:#8E8E93;font-size:11px;">${t.description || '-'}</td>
+        <td>${pill(t.status)}</td>
+        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="setTx('${t.id}','approved')">Paid</button><button class="t-btn t-no" onclick="rejectWd('${t.id}','${t.user_id}',${t.amount})">Reject</button>` : '—'}</td>
+      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">No withdrawals.</td></tr>';
+    }
+
+    window.setTx = async (id, status) => {
+      await window.supabase.from('transactions').update({ status }).eq('id', id);
+      loadDep(); loadWd();
+    };
+
+    window.approveDep = async (id, userId, amount) => {
+      if (!confirm(`Credit ₦${Number(amount).toLocaleString()} to this user?`)) return;
+      const { data: w } = await window.supabase.from('wallets').select('balance').eq('user_id', userId).single();
+      if (!w) return alert('Wallet not found');
+      await window.supabase.from('wallets').update({ balance: Number(w.balance) + Number(amount) }).eq('user_id', userId);
+      await window.supabase.from('transactions').update({ status: 'approved' }).eq('id', id);
+      loadDep();
+    };
+
+    window.rejectWd = async (id, userId, netAmount) => {
+      if (!confirm('Reject and refund this withdrawal (net + fee)?')) return;
+      // find linked fee
+      const { data: feeTx } = await window.supabase.from('transactions').select('amount').eq('reference', id).eq('type', 'withdrawal_fee').single();
+      const refund = Math.abs(netAmount) + Math.abs(feeTx?.amount || 0);
+      const { data: w } = await window.supabase.from('wallets').select('balance').eq('user_id', userId).single();
+      await window.supabase.from('wallets').update({ balance: Number(w.balance) + refund }).eq('user_id', userId);
+      await window.supabase.from('transactions').update({ status: 'rejected' }).eq('id', id);
+      if (feeTx) await window.supabase.from('transactions').update({ status: 'rejected' }).eq('reference', id).eq('type', 'withdrawal_fee');
+      loadWd();
+    };
+
+    document.addEventListener('admin:ready', () => { loadDep(); loadWd(); });
+  </script>
+</body>
+</html>
