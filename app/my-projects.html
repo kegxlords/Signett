@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Projects — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.prog{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .prog > div{height:100%;background:var(--gold);border-radius:3px;}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="total-bar">Total: <b id="totalInvested">₦0.00</b></div>
+    <div style="padding: 0 16px;" id="list"><div class="empty">Loading projects...</div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('My projects');
+      SIGNETT.renderNav();
+
+      const { data: w } = await window.supabase.from('wallets').select('total_invested').eq('user_id', CURRENT_USER.id).single();
+      document.getElementById('totalInvested').innerText = SIGNETT.money(w?.total_invested || 0);
+
+      const { data: ups } = await window.supabase.from('user_products')
+        .select('*, products(name, image_url)').eq('user_id', CURRENT_USER.id)
+        .order('created_at', { ascending: false });
+
+      const list = document.getElementById('list');
+      if (!ups || !ups.length) { list.innerHTML = '<div class="empty">No projects yet. Browse gems to start earning.</div>'; return; }
+
+      list.innerHTML = ups.map(u => {
+        const pct = Math.min(100, (u.days_paid / u.term_days) * 100);
+        const badge = u.status === 'active'
+          ? '<span class="pill pill-pass">Active</span>'
+          : '<span class="pill pill-pend">Completed</span>';
+        return `
+        <div class="card holding-card">
+          <img class="hc-thumb" src="${u.products?.image_url || ''}" alt="">
+          <div class="hc-meta">
+            <div class="hc-name">${u.products?.name || 'Gem'} ${badge}</div>
+            <div class="hc-line">${SIGNETT.money(u.purchase_price)} · Term: <b>${u.term_days} days</b></div>
+            <div class="hc-line">Get: <b style="color:var(--gold);">${SIGNETT.money(u.total_paid)}</b> · Day ${u.days_paid}/${u.term_days}</div>
+            <div class="hc-line">Created: ${new Date(u.created_at).toLocaleDateString()}</div>
+            <div class="prog"><div style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      }).join('');
+    });
+  </script>
+</body>
+</html>
