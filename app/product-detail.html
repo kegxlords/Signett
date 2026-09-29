@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.detail-img{width:100%;height:230px;object-fit:cover;border-radius:10px;background:#000;}
+  .roi{background:rgba(248,196,113,.15);color:var(--gold);border-radius:8px;padding:10px;text-align:center;font-weight:600;font-size:13px;margin-top:12px;}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;" id="detailBox"><div class="empty">Loading...</div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    let PRODUCT = null;
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Project Detail');
+      SIGNETT.renderNav();
+      const id = new URLSearchParams(location.search).get('id');
+      const { data: p } = await window.supabase.from('products').select('*').eq('id', id).single();
+      if (!p) { document.getElementById('detailBox').innerHTML = '<div class="empty">Product not found.</div>'; return; }
+      PRODUCT = p;
+      const total = p.daily_income * p.term_days;
+      const roi = ((total - p.price) / p.price * 100).toFixed(1);
+      document.getElementById('detailBox').innerHTML = `
+        <img class="detail-img" src="${p.image_url || ''}" alt="">
+        <h2 style="margin:14px 0 10px; font-size:20px;">💎 ${p.name}</h2>
+        <div class="pc-row"><span class="lbl">Price:</span><span class="val">${SIGNETT.money(p.price)}</span></div>
+        <div class="pc-row"><span class="lbl">Term:</span><span class="val">${p.term_days} days</span></div>
+        <div class="pc-row"><span class="lbl">Daily income:</span><span class="val">${SIGNETT.money(p.daily_income)}</span></div>
+        <div class="pc-row"><span class="lbl">Total revenue:</span><span class="val">${SIGNETT.money(total)}</span></div>
+        <div class="roi">Projected ROI: ${roi}% over ${p.term_days} days</div>
+        <button class="btn btn-gold btn-block" style="margin-top:16px;" onclick="buyNow()">Buy Now — ${SIGNETT.money(p.price)}</button>`;
+    });
+
+    window.buyNow = async function () {
+      if (!confirm(`Activate ${PRODUCT.name} for ${SIGNETT.money(PRODUCT.price)}?\nThe amount will be deducted from your wallet.`)) return;
+      const result = await callApi('/api/buy-product', { product_id: PRODUCT.id });
+      if (result.success) { alert('✅ ' + result.message); location.href = 'my-projects.html'; }
+      else alert('❌ ' + (result.error || 'Purchase failed'));
+    };
+  </script>
+</body>
+</html>
