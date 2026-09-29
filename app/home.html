@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    .home-top { display: flex; gap: 10px; padding: 16px; }
+    .hero-img {
+      flex: 1; border-radius: 12px; min-height: 190px;
+      background: linear-gradient(160deg, #0d2b45, #1663B5);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 40px; color: var(--gold); font-weight: 800; letter-spacing: 2px;
+    }
+    .hero-img small { font-size: 11px; color: var(--muted); letter-spacing: 4px; margin-top: 6px; }
+    .home-top .qa-stack { width: 46%; }
+    .qa-btn { padding: 11px 12px; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="home-top">
+      <div class="hero-img">💎 SIGNETT<small>JEWELERS</small></div>
+      <div class="qa-stack">
+        <a class="qa-btn qa-recharge" href="recharge.html">Recharge</a>
+        <a class="qa-btn qa-withdraw" href="withdraw.html">Withdraws</a>
+        <a class="qa-btn qa-invite" href="invitation.html">Invitation</a>
+        <a class="qa-btn qa-packet" href="red-envelope.html">Exchange red packets</a>
+        <a class="qa-btn qa-app" href="customer-service.html">APP download</a>
+        <a class="qa-btn qa-teams" href="my-teams.html">My teams</a>
+      </div>
+    </div>
+
+    <div class="marquee" id="marquee"></div>
+
+    <div class="section-title">News</div>
+    <div id="newsList"><div class="empty">Loading news...</div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderHeader('Home', 'English ⌄');
+      SIGNETT.renderNav();
+      SIGNETT.loadMarquee('marquee');
+
+      const { data: news } = await window.supabase.from('news')
+        .select('*').eq('is_published', true).order('published_at', { ascending: false }).limit(6);
+      const box = document.getElementById('newsList');
+      if (!news || !news.length) { box.innerHTML = '<div class="empty">No news yet.</div>'; return; }
+      box.innerHTML = news.map(n => `
+        <div class="news-row">
+          <div class="news-info">
+            <div class="news-title">${n.title}</div>
+            <div class="news-date">${new Date(n.published_at).toLocaleDateString()}</div>
+          </div>
+          ${n.image_url ? `<img class="news-thumb" src="${n.image_url}" alt="">` : ''}
+        </div>`).join('');
+    });
+  </script>
+</body>
+</html>
