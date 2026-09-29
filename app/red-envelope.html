@@ -21,35 +21,43 @@
   <script src="../assets/js/components.js"></script>
   <script>
     async function loadAll() {
+      // 1. Envelopes list
       const { data: envs } = await window.supabase.from('red_envelopes')
         .select('*').eq('is_active', true).order('created_at', { ascending: false });
       const box = document.getElementById('envList');
-      if (!envs || !envs.length) { box.innerHTML = '<div class="empty">No red envelopes available right now.</div>'; return; }
-      box.innerHTML = envs.map(e => {
-        const left = e.max_claims - e.claims_count;
-        const done = left <= 0;
-        return `<div class="card env-card">
-          <div class="gem">🧧</div>
-          <div style="font-size:16px;font-weight:700;">${e.title}</div>
-          <div style="color:var(--gold);font-size:22px;font-weight:800;margin:6px 0;">${SIGNETT.money(e.claim_amount)}</div>
-          <div class="env-left">${left > 0 ? left + ' left of ' + e.max_claims : 'All claimed'}</div>
-          <button class="btn btn-gold btn-block" ${done ? 'disabled' : ''} onclick="claim('${e.id}', this)">${done ? 'Finished' : 'Open Envelope'}</button>
-        </div>`;
-      }).join('');
 
+      if (!envs || !envs.length) {
+        box.innerHTML = '<div class="empty">No red envelopes available right now.</div>';
+      } else {
+        box.innerHTML = envs.map(e => {
+          const left = e.max_claims - e.claims_count;
+          const done = left <= 0;
+          return `<div class="card env-card">
+            <div class="gem">🧧</div>
+            <div style="font-size:16px;font-weight:700;">${e.title}</div>
+            <div style="color:var(--gold);font-size:22px;font-weight:800;margin:6px 0;">${SIGNETT.money(e.claim_amount)}</div>
+            <div class="env-left">${left > 0 ? left + ' left of ' + e.max_claims : 'All claimed'}</div>
+            <button class="btn btn-gold btn-block" ${done ? 'disabled' : ''} onclick="claim('${e.id}', this)">${done ? 'Finished' : 'Open Envelope'}</button>
+          </div>`;
+        }).join('');
+      }
+
+      // 2. My claims — ALWAYS loads now (no early return!)
       const { data: claims } = await window.supabase.from('red_envelope_claims')
         .select('*, red_envelopes(title)').eq('user_id', CURRENT_USER.id).order('created_at', { ascending: false });
-      claimBox.innerHTML = (claims && claims.length)
+      document.getElementById('claimBox').innerHTML = (claims && claims.length)
         ? claims.map(c => `<div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
             <span>🧧 ${c.red_envelopes?.title}</span><span style="color:var(--success);font-weight:700;">+${SIGNETT.money(c.amount)}</span></div>`).join('')
         : '<div class="empty">No claims yet.</div>';
     }
+
     window.claim = async function (id, btn) {
       btn.disabled = true; btn.innerText = 'Opening...';
       const result = await callApi('/api/claim-red-envelope', { envelope_id: id });
       if (result.success) { alert(`🧧 Congratulations! You received ${SIGNETT.money(result.amount)}`); loadAll(); }
       else { alert('❌ ' + (result.error || 'Claim failed')); btn.disabled = false; btn.innerText = 'Open Envelope'; }
     };
+
     document.addEventListener('user:ready', () => { SIGNETT.renderSubHeader('Red envelope'); SIGNETT.renderNav(); loadAll(); });
   </script>
 </body>
