@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recharge — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.bank-box{background:rgba(0,0,0,.25);border-radius:10px;padding:14px;margin-bottom:14px;}
+  .bank-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;}
+  .bank-row .lbl{color:var(--muted);font-size:12px;}
+  .copy{background:var(--gold);color:var(--navy-deep);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title" style="padding:0 0 10px;">Payment Account</div>
+      <div class="bank-box">
+        <div class="bank-row"><span class="lbl">Bank</span><span id="bName">—</span></div>
+        <div class="bank-row"><span class="lbl">Account No.</span><span><b id="bNum">—</b> <button class="copy" onclick="copyTxt('bNum')">Copy</button></span></div>
+        <div class="bank-row"><span class="lbl">Account Name</span><span id="bAcc">—</span></div>
+      </div>
+      <div id="alert" class="alert"></div>
+      <form id="depForm">
+        <div class="field"><label>Amount Sent (₦)</label><input class="input" id="amount" type="number" placeholder="Minimum ₦1,000" required /></div>
+        <div class="field"><label>Sender Name / Transfer Reference</label><input class="input" id="sender" type="text" placeholder="e.g. JOHN A. or bank ref" required /></div>
+        <button class="btn btn-gold btn-block" type="submit">Submit for Approval</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    window.copyTxt = (id) => { navigator.clipboard.writeText(document.getElementById(id).innerText); alert('Copied!'); };
+    let MIN_DEP = 1000;
+
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Recharge');
+      SIGNETT.renderNav();
+      const { data: s } = await window.supabase.from('settings').select('key, value');
+      const g = (k, d) => { const x = s?.find(i => i.key === k); return x ? x.value : d; };
+      MIN_DEP = parseFloat(g('min_deposit', 1000));
+      bName.innerText = g('bank_name', 'Not configured');
+      bNum.innerText = g('account_number', '—');
+      bAcc.innerText = g('account_name', '—');
+      document.getElementById('amount').placeholder = `Minimum ${SIGNETT.money(MIN_DEP)}`;
+    });
+
+    document.getElementById('depForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alert');
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (amount < MIN_DEP) { alertBox.className = 'alert alert-error show'; alertBox.textContent = `Minimum recharge is ${SIGNETT.money(MIN_DEP)}`; return; }
+
+      const ref = 'DEP-' + Math.random().toString(36).slice(2, 9).toUpperCase();
+      const { error } = await window.supabase.from('transactions').insert({
+        user_id: CURRENT_USER.id, type: 'deposit', amount,
+        status: 'pending', reference: ref,
+        description: document.getElementById('sender').value.trim()
+      });
+
+      if (error) { alertBox.className = 'alert alert-error show'; alertBox.textContent = '❌ ' + error.message; return; }
+      alertBox.className = 'alert alert-success show';
+      alertBox.textContent = '✅ Submitted! Admin will verify and credit your wallet shortly.';
+      document.getElementById('depForm').reset();
+    });
+  </script>
+</body>
+</html>
