@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Me — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    .me-header { display: flex; align-items: center; gap: 14px; padding: 20px 16px; }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--blue-card); border: 3px solid var(--gold);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: var(--gold); }
+    .me-phone { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .me-id { font-size: 12px; color: var(--muted); background: rgba(0,0,0,.25); padding: 4px 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="me-header">
+      <div class="avatar" id="avatar">S</div>
+      <div>
+        <div class="me-phone" id="mePhone">—</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="pill pill-pend">👑 Member</span>
+          <span class="me-id" id="meId">ID: —</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="stat-cell"><div class="lbl">Product</div><div class="val" id="stInvested">0.00</div></div>
+      <div class="stat-cell"><div class="lbl">Team size</div><div class="val" id="stTeam">0</div></div>
+      <div class="stat-cell"><div class="lbl">Balance wallet</div><div class="val" id="stBalance">0.00</div></div>
+    </div>
+    <div class="card stats-card">
+      <div class="stat-cell"><div class="lbl">Earnings today</div><div class="val" id="stToday">0.00</div></div>
+      <div class="stat-cell"><div class="lbl">Total earnings</div><div class="val" id="stTotal">0.00</div></div>
+      <div class="stat-cell"><div class="lbl">Team income</div><div class="val" id="stTeamInc">0.00</div></div>
+    </div>
+
+    <div class="card comm-card">
+      <div class="tiers">
+        <div class="tier"><div class="pct" id="pctB">B–12%</div><div class="cnt" id="cntB">0</div></div>
+        <div class="tier"><div class="pct" id="pctC">C–6%</div><div class="cnt" id="cntC">0</div></div>
+        <div class="tier"><div class="pct" id="pctD">D–3%</div><div class="cnt" id="cntD">0</div></div>
+      </div>
+      <a class="btn btn-gold btn-block" href="my-teams.html">Team commission</a>
+    </div>
+
+    <div class="card">
+      <div class="icon-grid">
+        <a class="icon-item" href="customer-service.html"><div class="icon-disc">🎧</div><div class="icon-label">Customer service</div></a>
+        <a class="icon-item" href="my-projects.html"><div class="icon-disc">📦</div><div class="icon-label">My projects</div></a>
+        <a class="icon-item" href="coupon.html"><div class="icon-disc">🎟️</div><div class="icon-label">Coupon</div></a>
+        <a class="icon-item" href="funding-details.html"><div class="icon-disc">🧾</div><div class="icon-label">Funding details</div></a>
+        <a class="icon-item" href="bind-bank.html"><div class="icon-disc">💳</div><div class="icon-label">Bind bank account</div></a>
+        <a class="icon-item" href="invitation.html"><div class="icon-disc">✉️</div><div class="icon-label">Invitation</div></a>
+        <a class="icon-item" href="red-envelope.html"><div class="icon-disc">🧧</div><div class="icon-label">Red envelope</div></a>
+        <a class="icon-item" href="my-teams.html"><div class="icon-disc">👥</div><div class="icon-label">My teams</div></a>
+        <a class="icon-item" href="agent-investment.html"><div class="icon-disc">📢</div><div class="icon-label">Agent investment</div></a>
+      </div>
+    </div>
+
+    <div style="padding: 0 16px 20px;">
+      <button class="btn btn-outline btn-block" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    window.signOut = async () => { await window.supabase.auth.signOut(); location.href = '../auth/login.html'; };
+
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderNav();
+      const uid = CURRENT_USER.id;
+
+      const { data: w } = await window.supabase.from('wallets').select('*').eq('user_id', uid).single();
+      if (w) {
+        stInvested.innerText = Number(w.total_invested).toLocaleString('en-NG', {minimumFractionDigits: 2});
+        stBalance.innerText  = Number(w.balance).toLocaleString('en-NG', {minimumFractionDigits: 2});
+        stToday.innerText    = Number(w.earnings_today).toLocaleString('en-NG', {minimumFractionDigits: 2});
+        stTotal.innerText    = Number(w.total_earnings).toLocaleString('en-NG', {minimumFractionDigits: 2});
+        stTeamInc.innerText  = Number(w.team_income).toLocaleString('en-NG', {minimumFractionDigits: 2});
+      }
+
+      const p = CURRENT_USER.profile || {};
+      mePhone.innerText = p.phone || 'Member';
+      meId.innerText = 'ID: ' + (p.referral_code || '—');
+      avatar.innerText = (p.full_name || 'S')[0].toUpperCase();
+
+      // Team counts per level
+      const cnt = async (col) => (await window.supabase.from('profiles').select('*', { count: 'exact', head: true }).eq(col, uid)).count || 0;
+      const b = await cnt('upline_b'), c = await cnt('upline_c'), d = await cnt('upline_d');
+      cntB.innerText = b; cntC.innerText = c; cntD.innerText = d;
+      stTeam.innerText = b + c + d;
+
+      // Commission percentages from admin settings
+      const { data: s } = await window.supabase.from('settings').select('key, value');
+      const g = (k, df) => { const x = s?.find(i => i.key === k); return x ? x.value : df; };
+      pctB.innerText = `B–${g('commission_b', 12)}%`;
+      pctC.innerText = `C–${g('commission_c', 6)}%`;
+      pctD.innerText = `D–${g('commission_d', 3)}%`;
+    });
+  </script>
+</body>
+</html>
