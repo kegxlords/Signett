@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="marquee" id="marquee" style="margin-top:16px;"></div>
+    <div class="section-title">Top Teams</div>
+    <div class="card" style="padding:0;">
+      <table class="record-table">
+        <thead><tr><th>#</th><th>Member</th><th>Team Income</th></tr></thead>
+        <tbody id="board"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderHeader('Community');
+      SIGNETT.renderNav();
+      SIGNETT.loadMarquee('marquee');
+      const { data: tops } = await window.supabase.from('wallets')
+        .select('team_income, profiles(full_name, phone)').gt('team_income', 0)
+        .order('team_income', { ascending: false }).limit(10);
+      const body = document.getElementById('board');
+      if (!tops || !tops.length) { body.innerHTML = '<tr><td colspan="3" class="empty">No team earnings yet.</td></tr>'; return; }
+      body.innerHTML = tops.map((t, i) => {
+        const ph = t.profiles?.phone || '';
+        const masked = ph.length > 6 ? ph.slice(0, 3) + '****' + ph.slice(-3) : (t.profiles?.full_name || 'Member');
+        return `<tr><td>${i + 1}</td><td>${masked}</td><td style="color:var(--gold);font-weight:600;">${SIGNETT.money(t.team_income)}</td></tr>`;
+      }).join('');
+    });
+  </script>
+</body>
+</html>
