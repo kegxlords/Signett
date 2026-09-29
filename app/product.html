@@ -28,12 +28,12 @@
       if (!products || !products.length) { grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">No products available.</div>'; return; }
       grid.innerHTML = products.map(p => `
         <div class="product-card">
-          <img class="pc-img" src="${p.image_url || ''}" alt="${p.name}" onerror="this.style.background='#000'">
+          <div class="pc-imgwrap">💎<img loading="lazy" src="${p.image_url || ''}" alt="${p.name}" onerror="this.style.display='none'"></div>
           <div class="pc-name">💎 ${p.name}</div>
           <div class="pc-row"><span class="lbl">Price:</span><span class="val">${SIGNETT.money(p.price)}</span></div>
           <div class="pc-row"><span class="lbl">Term:</span><span class="val">${p.term_days} days</span></div>
-          <div class="pc-row"><span class="lbl">Daily income:</span><span class="val">${SIGNETT.money(p.daily_income)}</span></div>
-          <div class="pc-row"><span class="lbl">Total revenue:</span><span class="val">${SIGNETT.money(p.total_revenue || p.daily_income * p.term_days)}</span></div>
+          <div class="pc-row"><span class="lbl">Daily:</span><span class="val">${SIGNETT.money(p.daily_income)}</span></div>
+          <div class="pc-row"><span class="lbl">Total:</span><span class="val">${SIGNETT.money(p.total_revenue || p.daily_income * p.term_days)}</span></div>
           <a class="btn btn-gold btn-block btn-sm" href="product-detail.html?id=${p.id}">View project</a>
         </div>`).join('');
     });
