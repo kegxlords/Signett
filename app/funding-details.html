@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Funding Details — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.fd-row{display:flex;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+  .fd-desc{font-size:13px;font-weight:500;margin-bottom:4px;}
+  .fd-date{font-size:11px;color:var(--muted);}
+  .fd-amt{font-size:14px;font-weight:700;white-space:nowrap;}
+  .pos{color:var(--success);} .neg{color:#FF8A80;}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;padding:0;" id="box"><div class="empty">Loading ledger...</div></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Funding details');
+      SIGNETT.renderNav();
+      const { data: txs } = await window.supabase.from('transactions')
+        .select('*').eq('user_id', CURRENT_USER.id).order('created_at', { ascending: false }).limit(100);
+      const box = document.getElementById('box');
+      if (!txs || !txs.length) { box.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
+      box.innerHTML = txs.map(t => {
+        const amt = Number(t.amount);
+        return `<div class="fd-row">
+          <div><div class="fd-desc">${t.description || t.type.replace('_', ' ')}</div>
+          <div class="fd-date">${new Date(t.created_at).toLocaleString()} · ${t.status}</div></div>
+          <div class="fd-amt ${amt >= 0 ? 'pos' : 'neg'}">${amt >= 0 ? '+' : '-'}${SIGNETT.money(Math.abs(amt))}</div>
+        </div>`;
+      }).join('');
+    });
+  </script>
+</body>
+</html>
