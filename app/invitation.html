@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invitation — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.qr-wrap{text-align:center;padding:10px 0;}
+  .qr-wrap img{margin:0 auto;border-radius:12px;background:#fff;padding:10px;}
+  .code-big{text-align:center;font-size:30px;font-weight:800;color:var(--gold);letter-spacing:3px;margin:6px 0;}
+  .share-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .wa{background:#25D366;color:#fff;} .tg{background:#229ED9;color:#fff;}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title" style="padding:0 0 6px;">Your Invitation Code</div>
+      <div class="code-big" id="myCode">—</div>
+      <div class="qr-wrap"><img id="qr" width="170" height="170" alt="QR" /></div>
+      <div class="referral-link-box" style="display:flex;background:rgba(0,0,0,.25);border-radius:10px;padding:5px;">
+        <input class="input" style="border:none;background:transparent;margin:0;" id="refLink" readonly />
+        <button class="btn btn-gold btn-sm" onclick="copyLink()">Copy</button>
+      </div>
+      <div class="share-row">
+        <a class="btn wa" id="waBtn" target="_blank">WhatsApp</a>
+        <a class="btn tg" id="tgBtn" target="_blank">Telegram</a>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="stat-cell"><div class="lbl">Invited (B)</div><div class="val" id="cntB">0</div></div>
+      <div class="stat-cell"><div class="lbl">Team Size</div><div class="val" id="cntAll">0</div></div>
+      <div class="stat-cell"><div class="lbl">Commissions</div><div class="val" id="commTotal" style="color:var(--gold);">0</div></div>
+    </div>
+
+    <div class="card comm-card">
+      <div class="tiers">
+        <div class="tier"><div class="pct" id="pctB">B–12%</div><div class="cnt">Direct</div></div>
+        <div class="tier"><div class="pct" id="pctC">C–6%</div><div class="cnt">2nd line</div></div>
+        <div class="tier"><div class="pct" id="pctD">D–3%</div><div class="cnt">3rd line</div></div>
+      </div>
+      <a class="btn btn-gold btn-block" href="my-teams.html">View My Teams</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    window.copyLink = () => { const i = document.getElementById('refLink'); i.select(); document.execCommand('copy'); alert('Link copied!'); };
+
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Invitation');
+      SIGNETT.renderNav();
+      const uid = CURRENT_USER.id;
+      const code = CURRENT_USER.profile?.referral_code || '—';
+      const link = `${location.origin}/auth/register.html?ref=${code}`;
+
+      myCode.innerText = code;
+      refLink.value = link;
+      qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(link)}`;
+
+      const msg = encodeURIComponent(`💎 Join me on Signett Jewelries! Buy gems, earn daily income & team commissions. Sign up with my code ${code}: ${link}`);
+      waBtn.href = `https://wa.me/?text=${msg}`;
+      tgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`;
+
+      const cnt = async c => (await window.supabase.from('profiles').select('*', { count: 'exact', head: true }).eq(c, uid)).count || 0;
+      const b = await cnt('upline_b'), c = await cnt('upline_c'), d = await cnt('upline_d');
+      cntB.innerText = b; cntAll.innerText = b + c + d;
+
+      const { data: comms } = await window.supabase.from('commissions').select('amount').eq('user_id', uid);
+      commTotal.innerText = SIGNETT.money((comms || []).reduce((s, x) => s + Number(x.amount), 0));
+
+      const { data: s } = await window.supabase.from('settings').select('key, value');
+      const g = (k, df) => { const x = s?.find(i => i.key === k); return x ? x.value : df; };
+      pctB.innerText = `B–${g('commission_b', 12)}%`;
+      pctC.innerText = `C–${g('commission_c', 6)}%`;
+      pctD.innerText = `D–${g('commission_d', 3)}%`;
+    });
+  </script>
+</body>
+</html>
