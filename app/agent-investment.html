@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Investment — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.agent-card{padding:20px;text-align:center;}
+  .agent-card .tier-name{font-size:18px;font-weight:800;color:var(--gold);}
+  .agent-card ul{list-style:none;padding:0;margin:14px 0;font-size:13px;color:var(--muted);}
+  .agent-card li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card agent-card" style="margin-top:16px;">
+      <div class="tier-name">🥉 Bronze Agent</div>
+      <ul><li>Investment: ₦100,000</li><li>Extra team override: +1%</li><li>Priority support</li></ul>
+      <a class="btn btn-gold btn-block" id="apply1" target="_blank">Apply via Support</a>
+    </div>
+    <div class="card agent-card">
+      <div class="tier-name">🥈 Silver Agent</div>
+      <ul><li>Investment: ₦500,000</li><li>Extra team override: +2%</li><li>Weekly agent bonuses</li></ul>
+      <a class="btn btn-gold btn-block" id="apply2" target="_blank">Apply via Support</a>
+    </div>
+    <div class="card agent-card">
+      <div class="tier-name">🥇 Gold Agent</div>
+      <ul><li>Investment: ₦2,000,000</li><li>Extra team override: +3%</li><li>Regional leadership rights</li></ul>
+      <a class="btn btn-gold btn-block" id="apply3" target="_blank">Apply via Support</a>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Agent investment');
+      SIGNETT.renderNav();
+      const { data: s } = await window.supabase.from('settings').select('key, value');
+      const g = (k, d) => { const x = s?.find(i => i.key === k); return x ? x.value : d; };
+      const link = g('whatsapp_link', '#') || g('telegram_link', '#');
+      ['apply1', 'apply2', 'apply3'].forEach(id => document.getElementById(id).href = link);
+    });
+  </script>
+</body>
+</html>
