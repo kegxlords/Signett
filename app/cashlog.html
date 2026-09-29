@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Withdrawals Record — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;padding:0;">
+      <table class="record-table">
+        <thead><tr><th>Time</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Withdrawals record');
+      SIGNETT.renderNav();
+      const { data: txs } = await window.supabase.from('transactions')
+        .select('*').eq('user_id', CURRENT_USER.id).eq('type', 'withdrawal')
+        .order('created_at', { ascending: false });
+      const rows = document.getElementById('rows');
+      if (!txs || !txs.length) { rows.innerHTML = '<tr><td colspan="3" class="empty">No withdrawals yet.</td></tr>'; return; }
+      const pill = s => s === 'approved' ? '<span class="pill pill-pass">Passed</span>' : s === 'pending' ? '<span class="pill pill-pend">Pending</span>' : '<span class="pill pill-fail">Failed</span>';
+      rows.innerHTML = txs.map(t => `
+        <tr>
+          <td>${new Date(t.created_at).toLocaleString('en-NG', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+          <td>${Number(Math.abs(t.amount)).toLocaleString('en-NG', {minimumFractionDigits: 2})}</td>
+          <td>${pill(t.status)}</td>
+        </tr>`).join('');
+    });
+  </script>
+</body>
+</html>
