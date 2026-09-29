@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bind Bank Account — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title" style="padding:0 0 10px;">Saved Accounts</div>
+      <div id="bankList"><div class="empty">No bank account yet.</div></div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="padding:0 0 10px;">Add Account</div>
+      <div id="alert" class="alert"></div>
+      <form id="bankForm">
+        <div class="field"><label>Bank Name</label><input class="input" id="bankName" placeholder="e.g. GTBank" required /></div>
+        <div class="field"><label>Account Number</label><input class="input" id="acctNum" placeholder="10-digit number" required /></div>
+        <div class="field"><label>Account Name</label><input class="input" id="acctName" placeholder="Name on account" required /></div>
+        <button class="btn btn-gold btn-block" type="submit">Save Account</button>
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    async function loadBanks() {
+      const { data } = await window.supabase.from('bank_accounts').select('*').eq('user_id', CURRENT_USER.id);
+      const box = document.getElementById('bankList');
+      if (!data || !data.length) { box.innerHTML = '<div class="empty">No bank account yet.</div>'; return; }
+      box.innerHTML = data.map(b => `<div class="pc-row" style="font-size:14px;"><span class="val">${b.bank_name} • ${b.account_number}</span><span class="lbl">${b.account_name}</span></div>`).join('');
+    }
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Bind bank account');
+      SIGNETT.renderNav();
+      loadBanks();
+    });
+    document.getElementById('bankForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alert');
+      const { error } = await window.supabase.from('bank_accounts').insert({
+        user_id: CURRENT_USER.id,
+        bank_name: document.getElementById('bankName').value.trim(),
+        account_number: document.getElementById('acctNum').value.trim(),
+        account_name: document.getElementById('acctName').value.trim()
+      });
+      if (error) { alertBox.className = 'alert alert-error show'; alertBox.textContent = '❌ ' + error.message; return; }
+      alertBox.className = 'alert alert-success show'; alertBox.textContent = '✅ Bank account saved!';
+      e.target.reset(); loadBanks();
+    });
+  </script>
+</body>
+</html>
