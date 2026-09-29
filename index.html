@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Signett Jewelries</title>
+  <style>body{background:#17456B;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;color:#F8C471;font-size:22px;letter-spacing:3px;}</style>
+</head>
+<body>
+  💎 SIGNETT JEWELRIES
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/api-client.js"></script>
+  <script>
+    window.supabase.auth.getSession().then(({ data }) => {
+      location.href = data.session ? 'app/home.html' : 'auth/login.html';
+    });
+  </script>
+</body>
+</html>
