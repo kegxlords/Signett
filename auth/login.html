@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="gem">💎</div>
+        <h1>SIGNETT</h1>
+        <p>JEWELRIES</p>
+      </div>
+      <div class="auth-box">
+        <div id="alert" class="alert"></div>
+        <form id="loginForm">
+          <div class="field"><label>Email or Phone</label><input class="input" id="email" type="text" placeholder="you@example.com" required /></div>
+          <div class="field"><label>Password</label><input class="input" id="password" type="password" placeholder="••••••••" required /></div>
+          <button class="btn btn-gold btn-block" id="loginBtn" type="submit">Sign In</button>
+        </form>
+        <a class="auth-link" href="forgot-password.html">Forgot password?</a>
+        <a class="auth-link" href="register.html">Create an account →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script>
+    // Show banned message if redirected
+    if (new URLSearchParams(location.search).get('banned')) {
+      const a = document.getElementById('alert');
+      a.className = 'alert alert-error show';
+      a.textContent = '⚠️ Your account has been suspended. Contact customer support.';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const alertBox = document.getElementById('alert');
+      alertBox.className = 'alert';
+      btn.disabled = true; btn.innerText = 'Signing in...';
+
+      const { data, error } = await window.supabase.auth.signInWithPassword({
+        email: document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value
+      });
+
+      if (error) {
+        alertBox.className = 'alert alert-error show';
+        alertBox.textContent = '❌ ' + error.message;
+        btn.disabled = false; btn.innerText = 'Sign In';
+        return;
+      }
+
+      const { data: profile } = await window.supabase.from('profiles')
+        .select('is_active').eq('id', data.user.id).single();
+
+      if (profile && profile.is_active === false) {
+        await window.supabase.auth.signOut();
+        alertBox.className = 'alert alert-error show';
+        alertBox.textContent = '⚠️ Your account has been suspended. Contact customer support.';
+        btn.disabled = false; btn.innerText = 'Sign In';
+        return;
+      }
+
+      alertBox.className = 'alert alert-success show';
+      alertBox.textContent = '✅ Welcome back! Redirecting...';
+      setTimeout(() => location.href = '../app/home.html', 800);
+    });
+  </script>
+</body>
+</html>
