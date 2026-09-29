@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Service — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.faq-q{font-weight:600;font-size:14px;padding:12px 0 4px;color:var(--gold-soft);}
+  .faq-a{font-size:13px;color:var(--muted);padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card" style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+      <a class="btn" style="background:#229ED9;color:#fff;" id="tgBtn" target="_blank">✈️ Telegram Support</a>
+      <a class="btn" style="background:#25D366;color:#fff;" id="waBtn" target="_blank">💬 WhatsApp Support</a>
+    </div>
+    <div class="section-title">FAQ</div>
+    <div class="card">
+      <div class="faq-q">How fast are deposits approved?</div>
+      <div class="faq-a">Deposits are verified manually and usually approved within 5–30 minutes during working hours.</div>
+      <div class="faq-q">When is my daily income paid?</div>
+      <div class="faq-a">Automatically at midnight (server time) for every active gem contract.</div>
+      <div class="faq-q">How do team commissions work?</div>
+      <div class="faq-a">You earn B (direct), C (2nd line) and D (3rd line) percentages on every gem your team activates.</div>
+      <div class="faq-q">When can I withdraw?</div>
+      <div class="faq-a">During the daily withdrawal window shown on the Withdraw page, on allowed days only.</div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('Customer service');
+      SIGNETT.renderNav();
+      const { data: s } = await window.supabase.from('settings').select('key, value');
+      const g = (k, d) => { const x = s?.find(i => i.key === k); return x ? x.value : d; };
+      tgBtn.href = g('telegram_link', '#');
+      waBtn.href = g('whatsapp_link', '#');
+    });
+  </script>
+</body>
+</html>
