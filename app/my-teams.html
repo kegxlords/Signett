@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Teams — Signett Jewelries</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>.lvl-tabs{display:flex;gap:8px;padding:14px 16px 0;}
+  .lvl-tab{flex:1;text-align:center;padding:10px;border-radius:10px;background:rgba(255,255,255,.08);font-size:13px;font-weight:600;cursor:pointer;}
+  .lvl-tab.active{background:var(--gold);color:var(--navy-deep);}</style>
+</head>
+<body>
+  <div class="page">
+    <div class="card stats-card" style="margin-top:16px;">
+      <div class="stat-cell"><div class="lbl">Team Income</div><div class="val" id="teamInc">0</div></div>
+      <div class="stat-cell"><div class="lbl">Members</div><div class="val" id="memAll">0</div></div>
+      <div class="stat-cell"><div class="lbl">Commissions</div><div class="val" id="commCnt">0</div></div>
+    </div>
+
+    <div class="lvl-tabs">
+      <div class="lvl-tab active" onclick="showLvl('b', this)">Level B</div>
+      <div class="lvl-tab" onclick="showLvl('c', this)">Level C</div>
+      <div class="lvl-tab" onclick="showLvl('d', this)">Level D</div>
+    </div>
+    <div class="card" style="margin-top:12px;" id="memberBox"><div class="empty">Loading...</div></div>
+
+    <div class="section-title">Commission History</div>
+    <div class="card" style="padding:0;" id="commBox"><div class="empty">Loading...</div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/components.js"></script>
+  <script>
+    const mask = p => (p && p.length > 6) ? p.slice(0, 3) + '****' + p.slice(-3) : (p || 'Member');
+    let CACHE = { b: [], c: [], d: [] };
+
+    window.showLvl = function (lvl, el) {
+      document.querySelectorAll('.lvl-tab').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      const box = document.getElementById('memberBox');
+      const list = CACHE[lvl];
+      if (!list.length) { box.innerHTML = '<div class="empty">No Level ' + lvl.toUpperCase() + ' members yet.</div>'; return; }
+      box.innerHTML = list.map(m => `
+        <div class="pc-row" style="font-size:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);">
+          <span class="val">${mask(m.phone) || m.full_name}</span>
+          <span class="lbl">Joined ${new Date(m.created_at).toLocaleDateString()}</span>
+        </div>`).join('');
+    };
+
+    document.addEventListener('user:ready', async () => {
+      SIGNETT.renderSubHeader('My teams');
+      SIGNETT.renderNav();
+      const uid = CURRENT_USER.id;
+
+      const { data: w } = await window.supabase.from('wallets').select('team_income').eq('user_id', uid).single();
+      teamInc.innerText = SIGNETT.money(w?.team_income || 0);
+
+      for (const lvl of ['b', 'c', 'd']) {
+        const { data } = await window.supabase.from('profiles')
+          .select('full_name, phone, created_at').eq('upline_' + lvl, uid).order('created_at', { ascending: false });
+        CACHE[lvl] = data || [];
+      }
+      memAll.innerText = CACHE.b.length + CACHE.c.length + CACHE.d.length;
+      showLvl('b', document.querySelector('.lvl-tab'));
+
+      const { data: comms } = await window.supabase.from('commissions')
+        .select('*, profiles(full_name, phone)').eq('user_id', uid).order('created_at', { ascending: false }).limit(30);
+      commCnt.innerText = (comms || []).length;
+      commBox.innerHTML = (comms && comms.length)
+        ? comms.map(c => `
+          <div class="fd-row" style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
+            <div><div style="font-size:13px;font-weight:600;">Level ${c.level} · ${mask(c.profiles?.phone) || c.profiles?.full_name || 'Member'}</div>
+            <div style="font-size:11px;color:var(--muted);">${new Date(c.created_at).toLocaleDateString()} · ${c.percent}%</div></div>
+            <div style="color:var(--gold);font-weight:700;">+${SIGNETT.money(c.amount)}</div>
+          </div>`).join('')
+        : '<div class="empty">No commissions yet.</div>';
+    });
+  </script>
+</body>
+</html>
