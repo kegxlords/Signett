@@ -7,98 +7,377 @@
   <link rel="stylesheet" href="../assets/css/styles.css" />
   <style>
     body{background:#000;padding-bottom:40px;}
-    .adm-head{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#000;border-bottom:1px solid #1C1C1E;position:sticky;top:0;z-index:50;}
-    .adm-head b{color:#fff;font-size:18px;} .adm-head b span{color:#8B0000;}
-    .adm-tabs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;}
-    .adm-tab{padding:10px 18px;background:#1C1C1E;border:1px solid #2C2C2E;border-radius:10px;color:#8E8E93;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .adm-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #1C1C1E;position:sticky;top:0;z-index:60;background:#000;}
+    .adm-head b{color:#fff;font-size:17px;} .adm-head b span{color:#8B0000;}
+    .adm-tabs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;position:sticky;top:53px;background:#000;z-index:59;}
+    .adm-tabs::-webkit-scrollbar{display:none;}
+    .adm-tab{padding:9px 15px;background:#1C1C1E;border:1px solid #2C2C2E;border-radius:10px;color:#8E8E93;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
     .adm-tab.active{background:#8B0000;color:#F8C471;border-color:#8B0000;}
     .adm-card{background:#1C1C1E;border:1px solid #2C2C2E;border-radius:16px;margin:0 16px 16px;overflow:hidden;}
+    .adm-card h3{margin:0;padding:14px 16px;font-size:14px;color:#fff;border-bottom:1px solid #2C2C2E;}
+    .pad{padding:16px;}
     .adm-table{width:100%;border-collapse:collapse;font-size:12.5px;color:#fff;}
-    .adm-table th{background:#0A0A0A;color:#8E8E93;text-align:left;padding:11px 10px;font-size:10.5px;text-transform:uppercase;}
-    .adm-table td{padding:12px 10px;border-bottom:1px solid #232323;vertical-align:top;}
-    .t-btn{border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px;}
-    .t-ok{background:#30D158;color:#000;} .t-no{background:#FF453A;color:#fff;}
+    .adm-table th{background:#0A0A0A;color:#8E8E93;text-align:left;padding:10px;font-size:10.5px;text-transform:uppercase;}
+    .adm-table td{padding:11px 10px;border-bottom:1px solid #232323;vertical-align:top;}
     .scroll-x{overflow-x:auto;}
+    .t-btn{border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;margin:2px 4px 2px 0;}
+    .t-ok{background:#30D158;color:#000;} .t-no{background:#FF453A;color:#fff;} .t-mut{background:#2C2C2E;color:#fff;}
+    .d-input{width:100%;padding:11px 12px;background:#0A0A0A;border:1px solid #2C2C2E;border-radius:9px;color:#fff;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;}
+    .d-label{font-size:11px;color:#8E8E93;margin-bottom:5px;display:block;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .d-btn{width:100%;padding:12px;background:#8B0000;color:#F8C471;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;}
+    .days-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 12px;}
+    .day-btn{background:#0A0A0A;border:1px solid #3A3A3C;color:#8E8E93;padding:11px 0;border-radius:9px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;}
+    .day-btn.selected{background:#8B0000;border-color:#F8C471;color:#F8C471;}
+    .modal-dark{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:flex-end;justify-content:center;z-index:200;}
+    .modal-dark.active{display:flex;}
+    .modal-box{background:#1C1C1E;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:22px;}
   </style>
 </head>
 <body>
   <div class="adm-head"><b>SIGNETT <span>ADMIN</span></b><a href="../app/home.html" style="color:#8E8E93;font-size:13px;text-decoration:none;">Exit</a></div>
+
   <div class="adm-tabs">
-    <div class="adm-tab active" onclick="tab('dep', this)">💰 Deposits</div>
-    <div class="adm-tab" onclick="tab('wd', this)">💸 Withdrawals</div>
+    <div class="adm-tab active" onclick="tab('dep',this)">💰 Deposits</div>
+    <div class="adm-tab" onclick="tab('wd',this)">💸 Withdrawals</div>
+    <div class="adm-tab" onclick="tab('users',this)">👥 Users</div>
+    <div class="adm-tab" onclick="tab('prod',this)">💎 Products</div>
+    <div class="adm-tab" onclick="tab('rew',this)">🎁 Rewards</div>
+    <div class="adm-tab" onclick="tab('news',this)">📰 News</div>
+    <div class="adm-tab" onclick="tab('set',this)">⚙️ Settings</div>
   </div>
+
+  <!-- DEPOSITS -->
   <div id="pane-dep" class="adm-card"><div class="scroll-x"><table class="adm-table">
     <thead><tr><th>User</th><th>Amount</th><th>Sender/Ref</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody id="depRows"><tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">Loading...</td></tr></tbody>
-  </table></div></div>
+    <tbody id="depRows"></tbody></table></div></div>
+
+  <!-- WITHDRAWALS -->
   <div id="pane-wd" class="adm-card" style="display:none;"><div class="scroll-x"><table class="adm-table">
     <thead><tr><th>User</th><th>Net</th><th>Bank</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody id="wdRows"><tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">Loading...</td></tr></tbody>
-  </table></div></div>
+    <tbody id="wdRows"></tbody></table></div></div>
+
+  <!-- USERS -->
+  <div id="pane-users" style="display:none;">
+    <div class="adm-card"><div class="pad"><input class="d-input" style="margin:0;" id="userSearch" placeholder="🔍 Search name / phone / email..." oninput="renderUsers()"></div>
+      <div class="scroll-x"><table class="adm-table">
+        <thead><tr><th>User</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="userRows"></tbody></table></div></div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div id="pane-prod" style="display:none;">
+    <div class="adm-card"><h3>➕ Add Gem Product</h3><div class="pad">
+      <div class="grid2">
+        <div><span class="d-label">Name</span><input class="d-input" id="pName"></div>
+        <div><span class="d-label">Category</span><select class="d-input" id="pCat"><option value="normal">Normal</option><option value="advance">Advance</option></select></div>
+        <div><span class="d-label">Price ₦</span><input class="d-input" id="pPrice" type="number"></div>
+        <div><span class="d-label">Term (days)</span><input class="d-input" id="pTerm" type="number"></div>
+        <div><span class="d-label">Daily income ₦</span><input class="d-input" id="pDaily" type="number"></div>
+        <div><span class="d-label">Stock (0=∞)</span><input class="d-input" id="pStock" type="number" value="0"></div>
+      </div>
+      <span class="d-label">Image URL</span><input class="d-input" id="pImg" placeholder="https://...">
+      <button class="d-btn" onclick="addProduct()">Save Product</button>
+    </div></div>
+    <div class="adm-card"><div class="scroll-x"><table class="adm-table">
+      <thead><tr><th>Name</th><th>Price</th><th>Daily</th><th>Term</th><th>Cat</th><th>Status</th><th>Toggle</th></tr></thead>
+      <tbody id="prodRows"></tbody></table></div></div>
+  </div>
+
+  <!-- REWARDS -->
+  <div id="pane-rew" style="display:none;">
+    <div class="adm-card"><h3>🎟️ Create Coupon</h3><div class="pad">
+      <div class="grid2">
+        <div><span class="d-label">Code</span><input class="d-input" id="cCode" placeholder="Auto if blank"></div>
+        <div><span class="d-label">Type</span><select class="d-input" id="cType"><option value="amount">Amount ₦</option><option value="percent">% of investment</option></select></div>
+        <div><span class="d-label">Value</span><input class="d-input" id="cValue" type="number"></div>
+        <div><span class="d-label">Max uses</span><input class="d-input" id="cMax" type="number" value="1"></div>
+      </div>
+      <button class="d-btn" onclick="addCoupon()">Create Coupon</button>
+    </div>
+    <div class="scroll-x"><table class="adm-table">
+      <thead><tr><th>Code</th><th>Value</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="coupRows"></tbody></table></div></div>
+
+    <div class="adm-card"><h3>🧧 Create Red Envelope</h3><div class="pad">
+      <div class="grid2">
+        <div><span class="d-label">Title</span><input class="d-input" id="eTitle"></div>
+        <div><span class="d-label">Amount ₦</span><input class="d-input" id="eAmount" type="number"></div>
+        <div><span class="d-label">Max claims</span><input class="d-input" id="eMax" type="number" value="100"></div>
+      </div>
+      <button class="d-btn" onclick="addEnvelope()">Create Envelope</button>
+    </div>
+    <div class="scroll-x"><table class="adm-table">
+      <thead><tr><th>Title</th><th>Amount</th><th>Claims</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="envRows"></tbody></table></div></div>
+  </div>
+
+  <!-- NEWS -->
+  <div id="pane-news" style="display:none;">
+    <div class="adm-card"><h3>📰 Publish News</h3><div class="pad">
+      <span class="d-label">Title</span><input class="d-input" id="nTitle">
+      <span class="d-label">Body</span><input class="d-input" id="nBody">
+      <span class="d-label">Image URL</span><input class="d-input" id="nImg">
+      <button class="d-btn" onclick="addNews()">Publish</button>
+    </div>
+    <div class="scroll-x"><table class="adm-table">
+      <thead><tr><th>Title</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody id="newsRows"></tbody></table></div></div>
+
+    <div class="adm-card"><h3>📢 Marquee Announcement</h3><div class="pad">
+      <span class="d-label">Message</span><input class="d-input" id="aMsg">
+      <button class="d-btn" onclick="addAnn()">Broadcast</button>
+    </div>
+    <div class="scroll-x"><table class="adm-table">
+      <thead><tr><th>Message</th><th>Actions</th></tr></thead>
+      <tbody id="annRows"></tbody></table></div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="pane-set" style="display:none;">
+    <div class="adm-card"><h3>💰 Financial & Commissions</h3><div class="pad">
+      <div class="grid2">
+        <div><span class="d-label">Min deposit</span><input class="d-input" id="s_min_deposit" type="number"></div>
+        <div><span class="d-label">Min withdrawal</span><input class="d-input" id="s_min_withdrawal" type="number"></div>
+        <div><span class="d-label">Withdrawal fee %</span><input class="d-input" id="s_withdrawal_fee_percent" type="number"></div>
+        <div><span class="d-label">Welcome bonus ₦</span><input class="d-input" id="s_welcome_bonus" type="number"></div>
+        <div><span class="d-label">Commission B %</span><input class="d-input" id="s_commission_b" type="number"></div>
+        <div><span class="d-label">Commission C %</span><input class="d-input" id="s_commission_c" type="number"></div>
+        <div><span class="d-label">Commission D %</span><input class="d-input" id="s_commission_d" type="number"></div>
+      </div>
+    </div></div>
+    <div class="adm-card"><h3>⏰ Withdrawal Window</h3><div class="pad">
+      <div class="grid2">
+        <div><span class="d-label">Open hour</span><input class="d-input" id="s_withdrawal_start_hour" type="number"></div>
+        <div><span class="d-label">Close hour</span><input class="d-input" id="s_withdrawal_end_hour" type="number"></div>
+      </div>
+      <span class="d-label">Allowed days</span>
+      <div class="days-grid">
+        <div class="day-btn" data-d="1">Mon</div><div class="day-btn" data-d="2">Tue</div>
+        <div class="day-btn" data-d="3">Wed</div><div class="day-btn" data-d="4">Thu</div>
+        <div class="day-btn" data-d="5">Fri</div><div class="day-btn" data-d="6">Sat</div>
+        <div class="day-btn" data-d="0">Sun</div>
+      </div>
+    </div></div>
+    <div class="adm-card"><h3>🏦 Bank & Links</h3><div class="pad">
+      <span class="d-label">Bank name</span><input class="d-input" id="s_bank_name">
+      <div class="grid2">
+        <div><span class="d-label">Account number</span><input class="d-input" id="s_account_number"></div>
+        <div><span class="d-label">Account name</span><input class="d-input" id="s_account_name"></div>
+      </div>
+      <span class="d-label">Telegram link</span><input class="d-input" id="s_telegram_link">
+      <span class="d-label">WhatsApp link</span><input class="d-input" id="s_whatsapp_link">
+      <button class="d-btn" onclick="saveSettings()">💾 Save All Settings</button>
+    </div></div>
+  </div>
+
+  <!-- BALANCE MODAL -->
+  <div id="balModal" class="modal-dark"><div class="modal-box">
+    <h3 style="margin:0 0 14px;color:#fff;">Adjust Balance — <span id="bmUser" style="color:#F8C471;"></span></h3>
+    <input type="hidden" id="bmId">
+    <span class="d-label">Action</span>
+    <select class="d-input" id="bmAction"><option value="credit">➕ Credit</option><option value="debit">➖ Debit</option></select>
+    <span class="d-label">Amount ₦</span><input class="d-input" id="bmAmount" type="number">
+    <span class="d-label">Reason</span><input class="d-input" id="bmReason" placeholder="e.g. refund, bonus">
+    <button class="d-btn" onclick="submitBalance()">Confirm</button>
+    <button class="d-btn" style="background:#2C2C2E;color:#fff;margin-top:8px;" onclick="balModal.classList.remove('active')">Cancel</button>
+  </div></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/api-client.js"></script>
   <script src="../assets/js/admin-guard.js"></script>
   <script>
+    const S = () => window.supabase;
+    const pill = s => s === 'approved' || s === 'completed' ? '<span class="pill pill-pass">OK</span>' : s === 'pending' ? '<span class="pill pill-pend">Pend</span>' : '<span class="pill pill-fail">No</span>';
+    let ALL_USERS = [];
+
     window.tab = (t, el) => {
       document.querySelectorAll('.adm-tab').forEach(x => x.classList.remove('active'));
       el.classList.add('active');
-      document.getElementById('pane-dep').style.display = t === 'dep' ? '' : 'none';
-      document.getElementById('pane-wd').style.display = t === 'wd' ? '' : 'none';
+      ['dep','wd','users','prod','rew','news','set'].forEach(p => document.getElementById('pane-' + p).style.display = p === t ? '' : 'none');
+      LOADERS[t]();
     };
-    const pill = s => s === 'approved' ? '<span class="pill pill-pass">Approved</span>' : s === 'pending' ? '<span class="pill pill-pend">Pending</span>' : '<span class="pill pill-fail">Rejected</span>';
 
+    const LOADERS = { dep: loadDep, wd: loadWd, users: loadUsers, prod: loadProducts, rew: loadRewards, news: loadNews, set: loadSettings };
+
+    // ---------- DEPOSITS / WITHDRAWALS ----------
     async function loadDep() {
-      const { data } = await window.supabase.from('transactions')
-        .select('*, profiles(email, phone)').eq('type', 'deposit').order('created_at', { ascending: false }).limit(50);
+      const { data } = await S().from('transactions').select('*, profiles(email, phone)').eq('type', 'deposit').order('created_at', { ascending: false }).limit(60);
       depRows.innerHTML = (data || []).map(t => `<tr>
         <td>${t.profiles?.phone || t.profiles?.email || '?'}</td>
         <td style="color:#F8C471;font-weight:700;">₦${Number(t.amount).toLocaleString()}</td>
         <td style="color:#8E8E93;">${t.description || '-'}<br><small>${t.reference || ''}</small></td>
         <td>${pill(t.status)}</td>
-        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="approveDep('${t.id}','${t.user_id}',${t.amount})">Approve</button><button class="t-btn t-no" onclick="setTx('${t.id}','rejected')">Reject</button>` : '—'}</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">No deposits.</td></tr>';
+        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="approveDep('${t.id}','${t.user_id}',${t.amount})">Approve</button><button class="t-btn t-no" onclick="setTx('${t.id}','rejected')">Reject</button>` : '—'}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:26px;color:#8E8E93;">None</td></tr>';
     }
-
     async function loadWd() {
-      const { data } = await window.supabase.from('transactions')
-        .select('*, profiles(email, phone)').eq('type', 'withdrawal').order('created_at', { ascending: false }).limit(50);
+      const { data } = await S().from('transactions').select('*, profiles(email, phone)').eq('type', 'withdrawal').order('created_at', { ascending: false }).limit(60);
       wdRows.innerHTML = (data || []).map(t => `<tr>
         <td>${t.profiles?.phone || t.profiles?.email || '?'}</td>
         <td style="color:#F8C471;font-weight:700;">₦${Number(Math.abs(t.amount)).toLocaleString()}</td>
         <td style="color:#8E8E93;font-size:11px;">${t.description || '-'}</td>
         <td>${pill(t.status)}</td>
-        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="setTx('${t.id}','approved')">Paid</button><button class="t-btn t-no" onclick="rejectWd('${t.id}','${t.user_id}',${t.amount})">Reject</button>` : '—'}</td>
-      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:30px;color:#8E8E93;">No withdrawals.</td></tr>';
+        <td>${t.status === 'pending' ? `<button class="t-btn t-ok" onclick="setTx('${t.id}','approved')">Paid</button><button class="t-btn t-no" onclick="rejectWd('${t.id}','${t.user_id}',${t.amount})">Reject</button>` : '—'}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:26px;color:#8E8E93;">None</td></tr>';
     }
-
-    window.setTx = async (id, status) => {
-      await window.supabase.from('transactions').update({ status }).eq('id', id);
-      loadDep(); loadWd();
-    };
-
+    window.setTx = async (id, status) => { await S().from('transactions').update({ status }).eq('id', id); loadDep(); loadWd(); };
     window.approveDep = async (id, userId, amount) => {
-      if (!confirm(`Credit ₦${Number(amount).toLocaleString()} to this user?`)) return;
-      const { data: w } = await window.supabase.from('wallets').select('balance').eq('user_id', userId).single();
+      if (!confirm(`Credit ₦${Number(amount).toLocaleString()}?`)) return;
+      const { data: w } = await S().from('wallets').select('balance').eq('user_id', userId).single();
       if (!w) return alert('Wallet not found');
-      await window.supabase.from('wallets').update({ balance: Number(w.balance) + Number(amount) }).eq('user_id', userId);
-      await window.supabase.from('transactions').update({ status: 'approved' }).eq('id', id);
+      await S().from('wallets').update({ balance: Number(w.balance) + Number(amount) }).eq('user_id', userId);
+      await S().from('transactions').update({ status: 'approved' }).eq('id', id);
       loadDep();
     };
-
-    window.rejectWd = async (id, userId, netAmount) => {
-      if (!confirm('Reject and refund this withdrawal (net + fee)?')) return;
-      // find linked fee
-      const { data: feeTx } = await window.supabase.from('transactions').select('amount').eq('reference', id).eq('type', 'withdrawal_fee').single();
-      const refund = Math.abs(netAmount) + Math.abs(feeTx?.amount || 0);
-      const { data: w } = await window.supabase.from('wallets').select('balance').eq('user_id', userId).single();
-      await window.supabase.from('wallets').update({ balance: Number(w.balance) + refund }).eq('user_id', userId);
-      await window.supabase.from('transactions').update({ status: 'rejected' }).eq('id', id);
-      if (feeTx) await window.supabase.from('transactions').update({ status: 'rejected' }).eq('reference', id).eq('type', 'withdrawal_fee');
+    window.rejectWd = async (id, userId, net) => {
+      if (!confirm('Reject & refund (net + fee)?')) return;
+      const { data: fee } = await S().from('transactions').select('amount').eq('reference', id).eq('type', 'withdrawal_fee').single();
+      const refund = Math.abs(net) + Math.abs(fee?.amount || 0);
+      const { data: w } = await S().from('wallets').select('balance').eq('user_id', userId).single();
+      await S().from('wallets').update({ balance: Number(w.balance) + refund }).eq('user_id', userId);
+      await S().from('transactions').update({ status: 'rejected' }).eq('id', id);
+      if (fee) await S().from('transactions').update({ status: 'rejected' }).eq('reference', id).eq('type', 'withdrawal_fee');
       loadWd();
     };
 
-    document.addEventListener('admin:ready', () => { loadDep(); loadWd(); });
+    // ---------- USERS ----------
+    async function loadUsers() {
+      const { data } = await S().from('profiles').select('*, wallets(balance)').order('created_at', { ascending: false });
+      ALL_USERS = data || [];
+      renderUsers();
+    }
+    window.renderUsers = function () {
+      const q = (document.getElementById('userSearch')?.value || '').toLowerCase();
+      const list = ALL_USERS.filter(u => !q || (u.full_name || '').toLowerCase().includes(q) || (u.phone || '').includes(q) || (u.email || '').toLowerCase().includes(q));
+      userRows.innerHTML = list.map(u => `<tr>
+        <td><b>${u.full_name || '—'}</b><br><small style="color:#8E8E93;">${u.phone || u.email || ''}</small></td>
+        <td style="color:#F8C471;font-weight:700;">₦${Number(u.wallets?.balance || 0).toLocaleString()}</td>
+        <td>${u.is_active ? '<span class="pill pill-pass">Active</span>' : '<span class="pill pill-fail">Banned</span>'}</td>
+        <td>
+          <button class="t-btn t-mut" onclick="openBal('${u.id}','${u.phone || u.email || ''}')">💰</button>
+          <button class="t-btn t-mut" onclick="impersonate('${u.email}')">👁</button>
+          ${u.is_admin ? '' : `<button class="t-btn ${u.is_active ? 't-no' : 't-ok'}" onclick="toggleBan('${u.id}',${u.is_active})">${u.is_active ? 'Ban' : 'Unban'}</button>`}
+        </td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:26px;color:#8E8E93;">None</td></tr>';
+    };
+    window.openBal = (id, label) => { bmId.value = id; bmUser.innerText = label; bmAmount.value = ''; bmReason.value = ''; balModal.classList.add('active'); };
+    window.submitBalance = async function () {
+      const userId = bmId.value, action = bmAction.value;
+      const amount = parseFloat(bmAmount.value);
+      if (!amount || amount <= 0) return alert('Enter valid amount');
+      const { data: w } = await S().from('wallets').select('balance').eq('user_id', userId).single();
+      if (!w) return alert('Wallet not found');
+      const nb = action === 'credit' ? Number(w.balance) + amount : Number(w.balance) - amount;
+      if (nb < 0) return alert('Insufficient funds for debit');
+      await S().from('wallets').update({ balance: nb }).eq('user_id', userId);
+      await S().from('transactions').insert({ user_id: userId, type: 'admin_adjustment', amount: action === 'credit' ? amount : -amount, status: 'completed', description: 'Admin: ' + (bmReason.value || 'adjustment') });
+      balModal.classList.remove('active'); loadUsers();
+    };
+    window.toggleBan = async (id, cur) => { if (!confirm(cur ? 'Ban this user?' : 'Unban this user?')) return; await S().from('profiles').update({ is_active: !cur }).eq('id', id); loadUsers(); };
+    window.impersonate = async function (email) {
+      if (!email) return alert('No email on this account');
+      if (!confirm('Open session as ' + email + '?')) return;
+      const r = await callApi('/api/impersonate', { email });
+      if (r.magic_link) window.open(r.magic_link, '_blank');
+      else alert('❌ ' + (r.error || 'Failed'));
+    };
+
+    // ---------- PRODUCTS ----------
+    async function loadProducts() {
+      const { data } = await S().from('products').select('*').order('sort_order');
+      prodRows.innerHTML = (data || []).map(p => `<tr>
+        <td>${p.name}</td><td>₦${Number(p.price).toLocaleString()}</td><td>₦${Number(p.daily_income).toLocaleString()}</td>
+        <td>${p.term_days}d</td><td>${p.category}</td>
+        <td>${p.is_active ? '<span class="pill pill-pass">Live</span>' : '<span class="pill pill-fail">Off</span>'}</td>
+        <td><button class="t-btn ${p.is_active ? 't-no' : 't-ok'}" onclick="toggleProd('${p.id}',${p.is_active})">${p.is_active ? 'Hide' : 'Show'}</button></td></tr>`).join('');
+    }
+    window.addProduct = async function () {
+      const price = parseFloat(pPrice.value) || 0, daily = parseFloat(pDaily.value) || 0, term = parseInt(pTerm.value) || 0;
+      if (!pName.value || !price || !term) return alert('Name, price & term required');
+      const { error } = await S().from('products').insert({
+        name: pName.value.trim(), category: pCat.value, price, term_days: term, daily_income: daily,
+        total_revenue: daily * term, stock: parseInt(pStock.value) || 0, image_url: pImg.value.trim() || null
+      });
+      if (error) return alert(error.message);
+      pName.value = pPrice.value = pDaily.value = pTerm.value = ''; loadProducts();
+    };
+    window.toggleProd = async (id, cur) => { await S().from('products').update({ is_active: !cur }).eq('id', id); loadProducts(); };
+
+    // ---------- REWARDS ----------
+    async function loadRewards() {
+      const { data: cs } = await S().from('coupons').select('*').order('created_at', { ascending: false });
+      coupRows.innerHTML = (cs || []).map(c => `<tr>
+        <td style="font-family:monospace;">${c.code}</td>
+        <td>${c.type === 'amount' ? '₦' + Number(c.value).toLocaleString() : c.value + '%'}</td>
+        <td>${c.used_count}/${c.max_uses}</td>
+        <td>${c.is_active ? '<span class="pill pill-pass">On</span>' : '<span class="pill pill-fail">Off</span>'}</td>
+        <td><button class="t-btn t-mut" onclick="toggleCoupon('${c.id}',${c.is_active})">${c.is_active ? 'Off' : 'On'}</button><button class="t-btn t-no" onclick="delCoupon('${c.id}')">Del</button></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#8E8E93;">None</td></tr>';
+
+      const { data: es } = await S().from('red_envelopes').select('*').order('created_at', { ascending: false });
+      envRows.innerHTML = (es || []).map(e => `<tr>
+        <td>${e.title}</td><td>₦${Number(e.claim_amount).toLocaleString()}</td><td>${e.claims_count}/${e.max_claims}</td>
+        <td>${e.is_active ? '<span class="pill pill-pass">On</span>' : '<span class="pill pill-fail">Off</span>'}</td>
+        <td><button class="t-btn t-mut" onclick="toggleEnv('${e.id}',${e.is_active})">${e.is_active ? 'Off' : 'On'}</button><button class="t-btn t-no" onclick="delEnv('${e.id}')">Del</button></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#8E8E93;">None</td></tr>';
+    }
+    window.addCoupon = async function () {
+      let code = cCode.value.trim().toUpperCase() || 'SGN-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const { error } = await S().from('coupons').insert({ code, type: cType.value, value: parseFloat(cValue.value) || 0, max_uses: parseInt(cMax.value) || 1 });
+      if (error) return alert(error.message);
+      cCode.value = cValue.value = ''; loadRewards();
+    };
+    window.toggleCoupon = async (id, cur) => { await S().from('coupons').update({ is_active: !cur }).eq('id', id); loadRewards(); };
+    window.delCoupon = async id => { if (confirm('Delete coupon?')) { await S().from('coupons').delete().eq('id', id); loadRewards(); } };
+    window.addEnvelope = async function () {
+      if (!eTitle.value || !eAmount.value) return alert('Title & amount required');
+      const { error } = await S().from('red_envelopes').insert({ title: eTitle.value.trim(), claim_amount: parseFloat(eAmount.value), max_claims: parseInt(eMax.value) || 100 });
+      if (error) return alert(error.message);
+      eTitle.value = eAmount.value = ''; loadRewards();
+    };
+    window.toggleEnv = async (id, cur) => { await S().from('red_envelopes').update({ is_active: !cur }).eq('id', id); loadRewards(); };
+    window.delEnv = async id => { if (confirm('Delete envelope?')) { await S().from('red_envelopes').delete().eq('id', id); loadRewards(); } };
+
+    // ---------- NEWS ----------
+    async function loadNews() {
+      const { data: ns } = await S().from('news').select('*').order('published_at', { ascending: false });
+      newsRows.innerHTML = (ns || []).map(n => `<tr><td>${n.title}</td><td style="color:#8E8E93;">${new Date(n.published_at).toLocaleDateString()}</td>
+        <td><button class="t-btn t-mut" onclick="toggleNews('${n.id}',${n.is_published})">${n.is_published ? 'Unpublish' : 'Publish'}</button><button class="t-btn t-no" onclick="delNews('${n.id}')">Del</button></td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;padding:20px;color:#8E8E93;">None</td></tr>';
+      const { data: as } = await S().from('announcements').select('*').order('created_at', { ascending: false });
+      annRows.innerHTML = (as || []).map(a => `<tr><td>${a.message}</td>
+        <td><button class="t-btn t-mut" onclick="toggleAnn('${a.id}',${a.is_active})">${a.is_active ? 'Off' : 'On'}</button><button class="t-btn t-no" onclick="delAnn('${a.id}')">Del</button></td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center;padding:20px;color:#8E8E93;">None</td></tr>';
+    }
+    window.addNews = async function () {
+      if (!nTitle.value) return alert('Title required');
+      await S().from('news').insert({ title: nTitle.value.trim(), body: nBody.value.trim(), image_url: nImg.value.trim() || null });
+      nTitle.value = nBody.value = nImg.value = ''; loadNews();
+    };
+    window.toggleNews = async (id, cur) => { await S().from('news').update({ is_published: !cur }).eq('id', id); loadNews(); };
+    window.delNews = async id => { if (confirm('Delete news?')) { await S().from('news').delete().eq('id', id); loadNews(); } };
+    window.addAnn = async function () {
+      if (!aMsg.value) return alert('Message required');
+      await S().from('announcements').insert({ message: aMsg.value.trim() });
+      aMsg.value = ''; loadNews();
+    };
+    window.toggleAnn = async (id, cur) => { await S().from('announcements').update({ is_active: !cur }).eq('id', id); loadNews(); };
+    window.delAnn = async id => { if (confirm('Delete announcement?')) { await S().from('announcements').delete().eq('id', id); loadNews(); } };
+
+    // ---------- SETTINGS ----------
+    document.querySelectorAll('.day-btn').forEach(b => b.addEventListener('click', () => b.classList.toggle('selected')));
+    async function loadSettings() {
+      const { data } = await S().from('settings').select('*');
+      if (!data) return;
+      const g = k => data.find(x => x.key === k)?.value || '';
+      ['min_deposit','min_withdrawal','withdrawal_fee_percent','welcome_bonus','commission_b','commission_c','commission_d','withdrawal_start_hour','withdrawal_end_hour','bank_name','account_number','account_name','telegram_link','whatsapp_link']
+        .forEach(k => { const el = document.getElementById('s_' + k); if (el) el.value = g(k); });
+      let days = []; try { days = JSON.parse(g('withdrawal_days') || '[]'); } catch (e) {}
+      document.querySelectorAll('.day-btn').forEach(b => b.classList.toggle('selected', days.includes(parseInt(b.dataset.d))));
+    }
+    window.saveSettings = async function () {
+      const keys = ['min_deposit','min_withdrawal','withdrawal_fee_percent','welcome_bonus','commission_b','commission_c','commission_d','withdrawal_start_hour','withdrawal_end_hour','bank_name','account_number','account_name','telegram_link','whatsapp_link'];
+      for (const k of keys) await S().from('settings').upsert({ key: k, value: document.getElementById('s_' + k).value }, { onConflict: 'key' });
+      const days = Array.from(document.querySelectorAll('.day-btn.selected')).map(b => parseInt(b.dataset.d));
+      await S().from('settings').upsert({ key: 'withdrawal_days', value: JSON.stringify(days) }, { onConflict: 'key' });
+      alert('✅ Settings saved!');
+    };
+
+    document.addEventListener('admin:ready', () => loadDep());
   </script>
 </body>
 </html>
