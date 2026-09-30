@@ -8,18 +8,11 @@ export default async function handler(req, res) {
     const { amount, bank_account_id } = req.body;
     if (!amount || !bank_account_id) return jsonResponse(res, 400, { error: 'Missing fields' });
 
-    // Settings
+    // Settings: min + fee ONLY (no time window)
     const { data: settings } = await supabaseAdmin.from('settings').select('key, value');
     const g = (k, d) => { const x = settings?.find(i => i.key === k); return x ? parseFloat(x.value) : d; };
     const min = g('min_withdrawal', 1000), feePct = g('withdrawal_fee_percent', 8);
-    const start = g('withdrawal_start_hour', 9), end = g('withdrawal_end_hour', 17);
-    let days = [1,2,3,4,5,6];
-    try { days = JSON.parse(settings?.find(i => i.key === 'withdrawal_days')?.value || '[1,2,3,4,5,6]'); } catch (e) {}
 
-    // Time window (server time)
-    const now = new Date();
-    if (!days.includes(now.getDay()) || now.getHours() < start || now.getHours() >= end)
-      return jsonResponse(res, 400, { error: `Withdrawals only open ${start}:00–${end}:00 on allowed days.` });
     if (amount < min) return jsonResponse(res, 400, { error: `Minimum withdrawal is ₦${min.toLocaleString()}` });
 
     // Bank must belong to user
@@ -43,7 +36,7 @@ export default async function handler(req, res) {
     }).select().single();
     if (wErr) throw wErr;
 
-    // Fee record linked to withdrawal
+    // Fee record
     if (fee > 0) {
       await supabaseAdmin.from('transactions').insert({
         user_id: user.id, type: 'withdrawal_fee', amount: -fee, status: 'completed',
