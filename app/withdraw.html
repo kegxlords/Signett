@@ -15,7 +15,10 @@
         <div class="stat-cell"><div class="lbl">Fee</div><div class="val" id="wFeePct">—</div></div>
       </div>
 
-      <div id="windowBanner" class="alert"></div>
+      <div style="text-align:center;font-size:12px;color:var(--success);font-weight:600;margin-bottom:12px;">
+        ⚡ 24/7 Withdrawals — no waiting windows
+      </div>
+
       <div id="alert" class="alert"></div>
       <div id="formArea"></div>
     </div>
@@ -26,7 +29,7 @@
   <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/components.js"></script>
   <script>
-    let CFG = { min: 1000, fee: 8, start: 9, end: 17, days: [1,2,3,4,5,6] };
+    let CFG = { min: 1000, fee: 8 };
     let BANKS = [];
 
     document.addEventListener('user:ready', async () => {
@@ -34,32 +37,19 @@
       SIGNETT.renderNav();
 
       const { data: w } = await window.supabase.from('wallets').select('balance').eq('user_id', CURRENT_USER.id).single();
-      document.getElementById('wBal').innerText = Number(w?.balance || 0).toLocaleString('en-NG', {minimumFractionDigits: 2});
+      document.getElementById('wBal').innerText = Number(w?.balance || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 });
 
       const { data: s } = await window.supabase.from('settings').select('key, value');
       const g = (k, d) => { const x = s?.find(i => i.key === k); return x ? x.value : d; };
-      CFG = { min: parseFloat(g('min_withdrawal', 1000)), fee: parseFloat(g('withdrawal_fee_percent', 8)),
-              start: parseInt(g('withdrawal_start_hour', 9)), end: parseInt(g('withdrawal_end_hour', 17)) };
-      try { CFG.days = JSON.parse(g('withdrawal_days', '[1,2,3,4,5,6]')); } catch (e) {}
-      wMin.innerText = Number(CFG.min).toLocaleString(); wFeePct.innerText = CFG.fee + '%';
+      CFG.min = parseFloat(g('min_withdrawal', 1000));
+      CFG.fee = parseFloat(g('withdrawal_fee_percent', 8));
+      wMin.innerText = Number(CFG.min).toLocaleString();
+      wFeePct.innerText = CFG.fee + '%';
 
       const { data: banks } = await window.supabase.from('bank_accounts').select('*').eq('user_id', CURRENT_USER.id);
       BANKS = banks || [];
-
-      checkWindow();
       renderForm();
     });
-
-    function checkWindow() {
-      const now = new Date();
-      const open = CFG.days.includes(now.getDay()) && now.getHours() >= CFG.start && now.getHours() < CFG.end;
-      const banner = document.getElementById('windowBanner');
-      banner.className = open ? 'alert alert-success show' : 'alert alert-error show';
-      banner.textContent = open
-        ? `✅ Withdrawal window OPEN (${CFG.start}:00 – ${CFG.end}:00)`
-        : `⏰ Withdrawals open ${CFG.start}:00 – ${CFG.end}:00 on allowed days only.`;
-      return open;
-    }
 
     function renderForm() {
       const area = document.getElementById('formArea');
@@ -91,15 +81,20 @@
       e.preventDefault();
       const alertBox = document.getElementById('alert');
       alertBox.className = 'alert';
-      if (!checkWindow()) return;
       const btn = e.target.querySelector('button');
       btn.disabled = true; btn.innerText = 'Processing...';
       const result = await callApi('/api/request-withdrawal', {
         amount: parseFloat(document.getElementById('amount').value),
         bank_account_id: document.getElementById('bankId').value
       });
-      if (result.success) { alertBox.className = 'alert alert-success show'; alertBox.textContent = '✅ Request submitted! Awaiting admin approval.'; e.target.reset(); calc(); }
-      else { alertBox.className = 'alert alert-error show'; alertBox.textContent = '❌ ' + (result.error || 'Failed'); }
+      if (result.success) {
+        alertBox.className = 'alert alert-success show';
+        alertBox.textContent = '✅ Request submitted! Awaiting admin approval.';
+        e.target.reset(); calc();
+      } else {
+        alertBox.className = 'alert alert-error show';
+        alertBox.textContent = '❌ ' + (result.error || 'Failed');
+      }
       btn.disabled = false; btn.innerText = 'Request Withdrawal';
     }
   </script>
